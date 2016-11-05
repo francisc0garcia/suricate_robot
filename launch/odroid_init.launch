@@ -1,0 +1,15 @@
+<launch>
+    # Start ros bridge server
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" >
+        <arg name="port" value="9090"/>
+    </include>
+
+    # create a web_video_server
+    <node pkg="web_video_server" type="web_video_server" name="web_video_server" required="false" />
+
+    # Start OpenNI 2
+    <include file="$(find openni2_launch)/launch/openni2.launch" required="false" />
+
+    # Start node js app
+    <node  name="shell_node_js" pkg="robot_micro"  type="launch_node_js_app.sh" required="true" />
+</launch>

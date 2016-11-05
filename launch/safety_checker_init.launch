@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="robot_micro" type="robot_safety_checker.py" name="robot_safety_checker" required="false" ></node>
+</launch>

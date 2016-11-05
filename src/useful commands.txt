@@ -1,0 +1,100 @@
+- root access to GPIO for any executable:
+
+cd devel/lib/robot_micro    # cd to the directory with your node
+sudo chown root:root my_node     # change ownship to root
+sudo chmod a+rx my_node          # set as executable by all
+sudo chmod u+s my_node           # set the setuid bit
+
+example:
+
+sudo chown root:root devel/lib/robot_micro/robot_twist_subscriber
+sudo chmod a+rx devel/lib/robot_micro/robot_twist_subscriber
+sudo chmod u+s devel/lib/robot_micro/robot_twist_subscriber
+
+- Allow any user to use joystick
+sudo chmod a+rw /dev/input/js0
+
+/dev/ttyAMA0
+
+- use piscope
+
+export PIGPIO_ADDR=192.168.0.201
+piscope
+
+- execute init node
+roslaunch robot_starter robot_starter.launch
+
+- remove password with sudo
+edit:               sudo nano /etc/sudoers
+add to end file:    odroid ALL=(ALL) NOPASSWD: ALL
+
+- set GCC 5 for ubuntu 16.04
+export CC=/usr/bin/gcc-5
+export CXX=/usr/bin/g++-5
+
+-- Launch from PC
+
+cd ~/Documents/UNI/code/suricate_micro/
+source devel/setup.bash
+export ROS_IP=192.168.0.206
+export ROS_MASTER_URI=http://192.168.0.203:11311
+roslaunch robot_micro PC_launcher.launch
+
+- Launch raspberry
+
+cd ~/Documents/code/suricate_micro/
+source devel/setup.bash
+export ROS_IP=192.168.0.201
+export ROS_MASTER_URI=http://192.168.0.203:11311
+roslaunch robot_starter robot_starter.launch
+
+roslaunch robot_micro controller_init.launch
+roslaunch robot_micro safety_checker_init.launch
+
+- Launch Odroid
+
+cd ~/Documents/code/suricate_micro/
+source devel/setup.bash
+export ROS_IP=192.168.0.204
+roslaunch robot_starter robot_starter.launch
+
+- Clean start up
+
+sudo killall -9 pigpiod # kill the daemon
+sudo rm /var/run/pigpio.pid
+
+- monitor RAM memory
+watch -n 5 free -m
+
+- Fix NTFS problem
+sudo ntfsfix /dev/mmcblk0p1
+
+- if gazebo does not run, kill all gzserver
+sudo killall gzserver gzclient
+
+
+-- launch commands PC master - Rasp and odroid slave:
+
+-- PC
+cd ~/Documents/UNI/code/suricate_micro/
+source devel/setup.bash
+export ROS_IP=192.168.0.206
+roslaunch robot_micro PC_launcher.launch
+
+-- Raspberry
+cd ~/Documents/code/suricate_micro/
+source devel/setup.bash
+export ROS_IP=192.168.0.201
+export ROS_MASTER_URI=http://192.168.0.206:11311
+roslaunch robot_starter robot_starter.launch
+
+roslaunch robot_micro controller_init.launch
+
+-- ODROID
+cd ~/Documents/code/suricate_micro/
+source devel/setup.bash
+export ROS_IP=192.168.0.204
+export ROS_MASTER_URI=http://192.168.0.206:11311
+roslaunch robot_starter robot_starter.launch
+
+
