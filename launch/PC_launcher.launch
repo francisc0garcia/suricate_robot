@@ -2,39 +2,12 @@
     <include file="$(find teleop_twist_joy)/launch/teleop.launch" />
 
     <node name="custom_rqt_perspective" pkg="rqt_gui" type="rqt_gui"
-          args="--perspective-file  $(find robot_micro)/simulation/robot_micro.perspective" required="false" />
-    <!--
-        <include file="$(find gazebo_ros)/launch/empty_world.launch" >
-            <arg name="world_name" value="$(find robot_micro)/simulation/worlds/suricate.world"/>
-            <arg name="paused" value="true"/>
-            <arg name="use_sim_time" value="true"/>
-            <arg name="gui" value="true"/>
-            <arg name="headless" value="false"/>
-            <arg name="debug" value="false"/>
-        </include>
-
-    <node pkg="robot_micro" type="robot_controller.py" name="robot_controller" required="true" >
-        <param name="S_kp" type="double" value="0.1" />
-        <param name="S_kd" type="double" value="0.01" />
-        <param name="S_ki" type="double" value="0.0" />
-        <param name="S_windup" type="double" value="0.8" />
-
-        <param name="P_kp" type="double" value="0.22" />
-        <param name="P_kd" type="double" value="0" />
-        <param name="P_ki" type="double" value="0.02" />
-        <param name="P_windup" type="double" value="0.46" />
-
-        <param name="scaling_joy" type="double" value="2.1" />
-    </node>
- -->
-
-    <!--
-    <node pkg="robot_micro" type="robot_controller.py" name="robot_controller" required="true" />
-    -->
+          args="--perspective-file  $(find suricate_robot)/simulation/robot_micro.perspective" required="false" />
 
     <!--
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_micro)/simulation/rviz_config.rviz" required="false" />
     -->
+
     <!--
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" >
         <arg name="port" value="9090"/>
@@ -42,6 +15,6 @@
     -->
 
     <!--
-    <node pkg="robot_micro" type="visual_odometry" name="visual_odometry"/>
+    <node pkg="suricate_robot" type="visual_odometry" name="visual_odometry"/>
     -->
 </launch>

@@ -22,7 +22,6 @@ find_package(catkin REQUIRED COMPONENTS
         visualization_msgs
         )
 
-
 generate_dynamic_reconfigure_options(cfg/controller.cfg)
 catkin_package(DEPENDS DEPENDS dynamic_reconfigure)
 
@@ -43,20 +42,18 @@ find_library(WIRINGPI_LIBRARY wiringPi /Documents/software/wiringPi/wiringPi)
 
 include_directories(
         include
-        #${catkin_INCLUDE_DIRS}
+        ${catkin_INCLUDE_DIRS}
 )
 
 set(EXECUTABLE_OUTPUT_PATH  ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib )
 
-
-add_executable(visual_odometry src/visual_odometry.cpp)
-target_link_libraries(visual_odometry ${catkin_LIBRARIES} ${OpenCV_LIBS} )
+#add_executable(visual_odometry src/visual_odometry.cpp)
+#target_link_libraries(visual_odometry ${catkin_LIBRARIES} ${OpenCV_LIBS} )
 
 add_executable(robot_twist_subscriber src/robot_twist_subscriber.cpp)
 target_link_libraries(robot_twist_subscriber ${Boost_LIBRARIES}  ${catkin_LIBRARIES}
         pigpio "${CMAKE_THREAD_LIBS_INIT}")
-
 
 #add_executable(arduino_test src/test/arduino_test.cpp)
 #target_link_libraries(arduino_test  ${Boost_LIBRARIES}  ${catkin_LIBRARIES} ${OpenCV_LIBS})

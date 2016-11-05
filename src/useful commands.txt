@@ -7,9 +7,9 @@ sudo chmod u+s my_node           # set the setuid bit
 
 example:
 
-sudo chown root:root devel/lib/robot_micro/robot_twist_subscriber
-sudo chmod a+rx devel/lib/robot_micro/robot_twist_subscriber
-sudo chmod u+s devel/lib/robot_micro/robot_twist_subscriber
+sudo chown root:root devel/lib/suricate_robot/robot_twist_subscriber
+sudo chmod a+rx devel/lib/suricate_robot/robot_twist_subscriber
+sudo chmod u+s devel/lib/suricate_robot/robot_twist_subscriber
 
 - Allow any user to use joystick
 sudo chmod a+rw /dev/input/js0
@@ -38,7 +38,7 @@ cd ~/Documents/UNI/code/suricate_micro/
 source devel/setup.bash
 export ROS_IP=192.168.0.206
 export ROS_MASTER_URI=http://192.168.0.203:11311
-roslaunch robot_micro PC_launcher.launch
+roslaunch suricate_robot PC_launcher_simulation.launch
 
 - Launch raspberry
 
@@ -48,8 +48,8 @@ export ROS_IP=192.168.0.201
 export ROS_MASTER_URI=http://192.168.0.203:11311
 roslaunch robot_starter robot_starter.launch
 
-roslaunch robot_micro controller_init.launch
-roslaunch robot_micro safety_checker_init.launch
+roslaunch suricate_robot controller_init.launch
+roslaunch suricate_robot safety_checker_init.launch
 
 - Launch Odroid
 
@@ -79,7 +79,7 @@ sudo killall gzserver gzclient
 cd ~/Documents/UNI/code/suricate_micro/
 source devel/setup.bash
 export ROS_IP=192.168.0.206
-roslaunch robot_micro PC_launcher.launch
+roslaunch suricate_robot PC_launcher.launch
 
 -- Raspberry
 cd ~/Documents/code/suricate_micro/
@@ -88,7 +88,7 @@ export ROS_IP=192.168.0.201
 export ROS_MASTER_URI=http://192.168.0.206:11311
 roslaunch robot_starter robot_starter.launch
 
-roslaunch robot_micro controller_init.launch
+roslaunch suricate_robot controller_init.launch
 
 -- ODROID
 cd ~/Documents/code/suricate_micro/

@@ -1,5 +1,5 @@
 <launch>
-    <node pkg="robot_micro" type="robot_controller.py" name="robot_controller" required="true" >
+    <node pkg="suricate_robot" type="robot_controller.py" name="robot_controller" required="true" >
         <param name="S_kp" type="double" value="0.1" />
         <param name="S_kd" type="double" value="0.02" />
         <param name="S_ki" type="double" value="0.04" />
@@ -14,7 +14,7 @@
     </node>
 
     <!--
-    <node pkg="robot_micro" type="robot_controller_LQR.py" name="robot_controller" required="true" ></node>
+    <node pkg="suricate_robot" type="robot_controller_LQR.py" name="robot_controller" required="true" ></node>
     -->
 </launch>
 

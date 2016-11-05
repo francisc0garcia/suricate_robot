@@ -2,10 +2,11 @@
     <include file="$(find teleop_twist_joy)/launch/teleop.launch" />
 
     <node name="custom_rqt_perspective" pkg="rqt_gui" type="rqt_gui"
+          args="--perspective-file  $(find suricate_robot)/simulation/robot_micro.perspective"
            required="false" />
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch" >
-        <arg name="world_name" value="$(find robot_micro)/simulation/worlds/suricate.world"/>
+        <arg name="world_name" value="$(find suricate_robot)/simulation/worlds/suricate.world"/>
         <arg name="paused" value="true"/>
         <arg name="use_sim_time" value="true"/>
         <arg name="gui" value="true"/>
@@ -13,7 +14,7 @@
         <arg name="debug" value="false"/>
     </include>
 
-    <node pkg="robot_micro" type="robot_controller.py" name="robot_controller" required="true" >
+    <node pkg="suricate_robot" type="robot_controller.py" name="robot_controller" required="true" >
         <param name="S_kp" type="double" value="0.1" />
         <param name="S_kd" type="double" value="0.01" />
         <param name="S_ki" type="double" value="0.0" />
@@ -28,7 +29,7 @@
     </node>
 
     <!--
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_micro)/simulation/rviz_config.rviz" required="false" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find suricate_robot)/simulation/rviz_config.rviz" required="false" />
     -->
 
 </launch>

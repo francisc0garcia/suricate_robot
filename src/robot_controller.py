@@ -14,7 +14,7 @@ from classes.linear_kalman_filer import *
 from classes.ControllerPosition import *
 from classes.PoseRobot import *
 
-from robot_micro.cfg import controllerConfig
+from suricate_robot.cfg import controllerConfig
 
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import Twist
@@ -61,7 +61,6 @@ class RobotControllerNode:
         self.enable_controller = False
 
         """Create a position controller"""
-
         self.controller = ControllerPosition()
         self.distPub = rospy.Publisher('~distance_to_goal', Float32, queue_size=1)
         self.rate = rospy.get_param('~rate', 50.0)
@@ -249,25 +248,6 @@ class RobotControllerNode:
         self.controller_vel.SetPoint = self.desired_x
         self.controller_vel.update(self.current_vel_x)
         self.controller_vel.output = self.bound_limit(self.controller_vel.output , -1, 1)
-        #deactivate controller
-        #self.controller_vel.output = 0
-
-        # new part controller
-        #kp_position = -0.7
-        #kp_velocity = kp_position / 2
-        #control_position = 0*(kp_position * self.current_position_x) + kp_velocity * self.current_vel_x
-
-        #rospy.loginfo("c_p %f  PID: %f", self.controller_vel.output, self.controller_pid.output)
-
-        # position controller
-        #if self.controller.atGoal(self.pose, self.goal):
-        #    desired = PoseRobot()
-        #else:
-        #    desired = self.controller.getVelocity(self.pose, self.goal,
-        #                                          self.dT)
-
-        #d = self.controller.getGoalDistance(self.pose, self.goal)
-        #self.distPub.publish(d)
 
         if self.enable_controller:
             self.output = self.controller_pid.output + self.controller_vel.output
@@ -277,17 +257,6 @@ class RobotControllerNode:
             self.output = 0.0
             self.desired_z = 0.0
             self.controller_pid.error = 0.0
-
-        #porc_self = 0.85
-        #porc_pos = 1 - porc_self
-        '''
-        self.twist.linear.x = self.output * porc_self + self.bound_limit(desired.xVel , -1, 1) * porc_pos
-        self.twist.linear.y = 0
-        self.twist.linear.z = 0
-        self.twist.angular.x = 0
-        self.twist.angular.y = 0
-        self.twist.angular.z =  self.bound_limit(desired.thetaVel , -1, 1)
-        '''
 
         self.twist.linear.x = self.output
         self.twist.linear.y = 0
