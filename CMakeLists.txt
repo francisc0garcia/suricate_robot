@@ -28,7 +28,7 @@ catkin_package(DEPENDS DEPENDS dynamic_reconfigure)
 catkin_package(
         INCLUDE_DIRS include
         LIBRARIES robot_micro gazebo_ros_diff_drive
-        CATKIN_DEPENDS roscpp rospy std_msgs OpenCV geometry_msgs sensor_msgs
+        CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs sensor_msgs
 )
 
 find_package( OpenCV REQUIRED)
