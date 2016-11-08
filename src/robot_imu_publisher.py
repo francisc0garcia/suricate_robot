@@ -66,7 +66,7 @@ class RobotImuPublisherNode:
                 # ax, ay, az = self.bno.read_accelerometer()
                 # gvx, gvy, gvz = self.bno.read_gravity()
                 yaw, roll, pitch = self.bno.read_euler()
-                # gx, gy, gz = self.bno.read_gyroscope()
+                gx, gy, gz = self.bno.read_gyroscope()
                 # lx, ly, lz = self.bno.read_linear_acceleration()
                 # rospy.loginfo("read_gravity gvx: %d gvy: %d gvz: %d",  gvx, gvy, gvz)
             except:

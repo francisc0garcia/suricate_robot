@@ -229,8 +229,6 @@ class DiffTf:
             odom.twist.twist.angular.z = self.dr
             self.odomPub.publish(odom)
 
-
-
             #if abs(self.x) > 500 or abs(self.y) > 500:
             #    self.reset_odometry_message(0)
 

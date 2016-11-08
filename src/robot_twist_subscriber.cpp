@@ -39,8 +39,13 @@ void velCallback(geometry_msgs::Twist::ConstPtr vel)
         double dr = vel->angular.z;
         //double dy = vel->linear.y;
 
-        double right = 1.0 * dx + dr * scaling_pwm / 2 ;
-        double left = 1.0 * dx - dr * scaling_pwm / 2;
+        //double right = 1.0 * dx + dr * scaling_pwm / 2 ;
+        //double left = 1.0 * dx - dr * scaling_pwm / 2;
+        double radious = 0.16;
+        double L_p = 0.6655;
+
+        double right = ((100/15)/(2*radious) ) * (dx + L_p * dr)  ;
+        double left = ((100/15)/(2*radious) ) * (dx - L_p * dr)  ;
 
         if(right > 0){
             pwm_R = (int)(max_pwm * right);
