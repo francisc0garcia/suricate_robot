@@ -1,29 +1,36 @@
 Suricate robot tutorials
 ========================
 
-small description of tutorials, explain how to extend the software
+This section explain some examples of how to use the gazebo simulation and ROS in order to play
+with the suricate robot and develop some extensions.
 
 Getting started
 ^^^^^^^^^^^^^^^
 
-asd asd asd asd
+* Use a LQR controller in order to stabilize the robot:
+
+.. code-block:: none
+
+    cd ~/catkin_ws
+    source devel/setup.bash
+    roslaunch suricate_robot PC_launcher_simulation.launch
 
 
 Modify robot controller
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-zxc zxc zxc zxc zxc zxc zxc
+under development...
 
 
 Define your own controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-asd qwe qwe qwe qwe qwe qwe qwe
+under development...
 
 
 Extend the project and add new features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-er t ert ert ert ert ert ert e
+under development...
 
 

@@ -1,6 +1,18 @@
 #ifndef ROBOT_MICRO_ROBOT_TWIST_SUSCRIBER_H
 #define ROBOT_MICRO_ROBOT_TWIST_SUSCRIBER_H
 
+/*
+Copyright (C) 2016 Francisco Garcia
+
+This program is free software; you can redistribute it and/or modify it under the terms of the
+        GNU General Public License as published by the Free Software Foundation; either version 2 of the License,
+or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details.
+*/
+
 // ROS dependencies
 #include <ros/ros.h>
 #include "geometry_msgs/Twist.h"
