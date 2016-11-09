@@ -63,6 +63,7 @@ Create a workspace for project, clone github repository, install dependencies an
     cd ~/catkin_ws/src
     git clone https://github.com/francisc0garcia/suricate_robot
     cd ..
+    source devel/setup.bash
     rosdep install suricate_robot
     catkin_make
 
