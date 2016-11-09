@@ -125,6 +125,8 @@ class RobotControllerLQRNode:
 
         self.output = - self.constant_scaling * (lqr_1 + lqr_2 + lqr_3 + lqr_4)
 
+        # this a modification
+
         #self.output = self.controller_position.output
         # create a twist message, fill in the details
         #self.twist.linear.x = - self.output*( 1 + self.desired_x)
