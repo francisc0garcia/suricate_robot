@@ -131,12 +131,12 @@ class RobotControllerNode:
         #rospy.loginfo("u: 1: %f 2: %f", u[0], u[1])
 
         # Publish new wrench value
-        self.wrench_cmd.force.x = self.bound_limit(u[0]* 0.009, -2, 2)
+        self.wrench_cmd.force.x = self.bound_limit(u[0]* 0.009, -100, 100)
         self.wrench_cmd.force.y = 0
         self.wrench_cmd.force.z = 0
         self.wrench_cmd.torque.x = 0
         self.wrench_cmd.torque.y = 0
-        self.wrench_cmd.torque.z = -self.bound_limit(u[1], -1, 1)
+        self.wrench_cmd.torque.z = -self.bound_limit(u[1], -100, 100)
         self.pub_wrench.publish(self.wrench_cmd)
 
     def disable_controller(self):

@@ -33,4 +33,5 @@ Developed by:
 - Dina Martynova
 
 Supervised by:
+
 - M. Sc. Alen Turnwald - turnwald@eit.uni-kl.de

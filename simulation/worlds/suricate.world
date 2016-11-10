@@ -17,7 +17,7 @@
         <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
         <atmosphere type='adiabatic'/>
         <physics name='default_physics' default='0' type='ode'>
-            <max_step_size>0.003</max_step_size>
+            <max_step_size>0.001</max_step_size>
             <real_time_factor>1</real_time_factor>
             <real_time_update_rate>1000</real_time_update_rate>
         </physics>
@@ -1853,6 +1853,7 @@
                 </physics>
             </joint>
 
+            <!--
             <plugin name='differential_drive_controller' filename='libgazebo_ros_diff_drive.so'>
                 <alwaysOn>true</alwaysOn>
                 <legacyMode>true</legacyMode>
@@ -1869,6 +1870,7 @@
                 <publishWheelTF>true</publishWheelTF>
                 <publishWheelJointState>true</publishWheelJointState>
             </plugin>
+            -->
 
             <plugin name='imu_plugin' filename='libgazebo_ros_imu.so'>
                 <bodyName>link_box_batteries</bodyName>
@@ -1878,6 +1880,24 @@
                 <gaussianNoise>0.1</gaussianNoise>
                 <xyzOffset>0 0 0</xyzOffset>
                 <rpyOffset>0 0 0</rpyOffset>
+            </plugin>
+
+            <plugin name='wrench_driver_left' filename='libwrench_driver.so'>
+                <updateRate>500</updateRate>
+                <joint_wheel>join_wheel_left</joint_wheel>
+                <link_wheel>link_wheel_left</link_wheel>
+                <direction>1</direction>
+                <commandTopic>/robot/cmd_wrench</commandTopic>
+                <max_wheel_torque>100</max_wheel_torque>
+            </plugin>
+
+            <plugin name='wrench_driver_right' filename='libwrench_driver.so'>
+                <updateRate>500</updateRate>
+                <joint_wheel>join_wheel_right</joint_wheel>
+                <link_wheel>link_wheel_right</link_wheel>
+                <direction>-1</direction>
+                <commandTopic>/robot/cmd_wrench</commandTopic>
+                <max_wheel_torque>100</max_wheel_torque>
             </plugin>
 
         </model>
