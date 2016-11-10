@@ -34,8 +34,7 @@ Answer: You can close manually the process, run in a command window:
 
 * How can I visualize the GPIO state of my raspberry PI 2 remotely?
 
-Answer: You can use pigpio scope (http://abyz.co.uk/rpi/pigpio/piscope.html), install piscope in your PC and then
- run the following command in a terminal.
+Answer: You can use pigpio scope [http://abyz.co.uk/rpi/pigpio/piscope.html], install piscope in your PC and then run the following command in a terminal.
 
 
 .. code-block:: none

@@ -55,7 +55,29 @@ And finally prepare environment:
 Compile project
 ^^^^^^^^^^^^^^^
 
-Create a workspace for project, clone github repository, install dependencies and compile it:
+First we need to install some dependencies:
+
+Install pigpio library for GPIO access into raspberry PI 2,
+source: http://abyz.co.uk/rpi/pigpio/download.html
+
+.. code-block:: none
+
+    rm pigpio.zip
+    sudo rm -rf PIGPIO
+    wget abyz.co.uk/rpi/pigpio/pigpio.zip
+    unzip pigpio.zip
+    cd PIGPIO
+    make -j4
+    sudo make install
+
+Then we should install some additional ROS packages:
+
+.. code-block:: none
+
+    sudo apt-get install ros-kinetic-teleop-twist-joy  ros-kinetic-rviz-imu-plugin python-smbus
+
+
+Finally we create a workspace for project, clone github repository, install dependencies and compile it:
 
 .. code-block:: none
 
@@ -67,14 +89,11 @@ Create a workspace for project, clone github repository, install dependencies an
     rosdep install suricate_robot
     catkin_make
 
-Need to install pigpio.h and python-smbus
-sudo apt-get install ros-kinetic-teleop-twist-joy
-sudo apt-get install ros-kinetic-rviz-imu-plugin
 
 Test project
 ^^^^^^^^^^^^
 
-Once the project has been compiled succesfully,
+Once the project has been compiled successfully,
 we can run a simulation that includes suricate robot using a simple controller for stabilization.
 
 .. code-block:: none

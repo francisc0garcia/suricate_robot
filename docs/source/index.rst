@@ -1,7 +1,7 @@
 Suricate robot documentation
 ============================
 
-Suricate project was developed as a master project on the institute for control systems in th University of Kaiserslautern.
+Suricate project was developed as a master project on the institute for control systems in the University of Kaiserslautern.
 
 Features:
 
