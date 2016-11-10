@@ -67,6 +67,10 @@ Create a workspace for project, clone github repository, install dependencies an
     rosdep install suricate_robot
     catkin_make
 
+Need to install pigpio.h and python-smbus
+sudo apt-get install ros-kinetic-teleop-twist-joy
+sudo apt-get install ros-kinetic-rviz-imu-plugin
+
 Test project
 ^^^^^^^^^^^^
 

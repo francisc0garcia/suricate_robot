@@ -99,9 +99,12 @@ class RobotControllerNode:
 
         self.srv = Server(controllerConfig, self.reconfig_callback) # define dynamic_reconfigure callback
 
-        rate = rospy.Rate(100)
+        rate = rospy.Rate(10)
 
         while not rospy.is_shutdown():
+            # The integral
+            # self.Idx = self.Idx + self.dx / 10
+            # self.Idr = self.Idr + self.dr / 10
             self.update_controller()
             rate.sleep()
 
@@ -147,6 +150,10 @@ class RobotControllerNode:
         self.dx = odometry_msg.twist.twist.linear.x
         self.dr = odometry_msg.twist.twist.angular.z
 
+        # Update integral
+        self.Idx = self.Idx + self.dx
+        self.Idr = self.Idr + self.dr
+
         self.pose = PoseRobot()
         pos = odometry_msg.pose.pose.position
         orientation = odometry_msg.pose.pose.orientation
@@ -174,9 +181,7 @@ class RobotControllerNode:
         return config
 
     def update_controller(self):
-        # Update integral
-        self.Idx = self.Idx + (self.dx - self.Idx)/2
-        self.Idr = self.Idr + (self.dr - self.Idr)/2
+
 
         # setup up sampling time at 10 hz
         v_xi = self.Idx      # integral self.dx
@@ -189,10 +194,12 @@ class RobotControllerNode:
         x = np.array( [v_xi, v_psi, v_phi, dv_xi, dv_psi, dv_phi])
         x_transposed = np.transpose(x)
 
-        Kdr = np.array(  [(-1.5127, -0, -124.013, -4.5334,  0, -36.1285),
-                          (0, 1.6286, 0, 0, 2.6639, 0) ] )
+        #k_dr = np.array(  [(-1.05, -0, -160.72 , -4.4415,  0, -40.751), # Ts  = 0.1
+         #                 (0, 1.6286, 0, 0, 2.6639, 0) ] )
+        k_dr = np.array(  [(-1.7321, -0, -198.77 , -6.756,  0, -50.551), # cont
+                      (0, 1.6286, 0, 0, 2.6639, 0) ] )
 
-        u = np.dot(-Kdr,  x_transposed)     # u = [linear.x; angular.z]
+        u = np.dot(k_dr,  x_transposed)     # u = [linear.x; angular.z]
 
         # for debugging:
         #print Kdr
@@ -200,7 +207,7 @@ class RobotControllerNode:
         #print u
         #rospy.loginfo("u: 1: %f 2: %f", u[0], u[1])
 
-        self.twist.linear.x =  -self.bound_limit(u[0], -1, 1)
+        self.twist.linear.x =  self.bound_limit(u[0]* 0.009, -2, 2)
         self.twist.linear.y = 0
         self.twist.linear.z = 0
         self.twist.angular.x = 0
