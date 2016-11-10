@@ -39,6 +39,7 @@ rad2degrees = 180.0/math.pi
 class RobotControllerNode:
     def __init__(self):
         # publish to cmd_vel
+        # TODO: Publish a Wrench command instead of Twist
         self.pub_vel = rospy.Publisher('/robot/cmd_vel_real', Twist, queue_size=1)
 
         # Reset output
@@ -165,6 +166,7 @@ class RobotControllerNode:
         if twist_msg.linear.x > 0:
             self.enable_controller = True
 
+        # TODO: Clean up the code to minimal possible
         self.desired_x = self.kalman_joy_filter.GetCurrentState()[0,0] * self.scaling_joy * 0.9
         self.desired_z = twist_msg.angular.z
 

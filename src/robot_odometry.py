@@ -197,6 +197,12 @@ class DiffTf:
             self.dx = d / elapsed
             self.dr = th / elapsed
 
+            ################### by Alen ###################
+            # TODO: publish v_xi
+            # if d != 0 :
+            #   self.v_xi = self.v_xi + d
+            ###############################################
+
             if d != 0:
                 # calculate distance traveled in x and y
                 x = cos( th ) * d

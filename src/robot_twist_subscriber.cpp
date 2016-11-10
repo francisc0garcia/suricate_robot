@@ -32,6 +32,8 @@ void resetPWM(){
     gpioWrite(M2_PWM, PI_LOW);
 }
 
+// TODO: Rename the Twist command ()subscriber into a Wrench
+
 void velCallback(geometry_msgs::Twist::ConstPtr vel)
 {
     if(enable_motors){
@@ -102,7 +104,7 @@ void arrayCallback(std_msgs::Int16MultiArray::ConstPtr array)
 int main(int argc, char **argv)
 {
     gpioCfgClock(4, 0, 0);
-
+// todo: RENAME THE twist COMMAND TO A WRENCH COMMAND
     while(gpioInitialise()<0){
         ROS_INFO("Initializing gpio...");
         sleep(1);
@@ -140,7 +142,7 @@ int main(int argc, char **argv)
 
     while ( ros::ok() )
     {
-        ros::spinOnce();
+        ros::spinOnce(); // refresh once
         r.sleep();
     }
 
