@@ -29,26 +29,19 @@ import rospy
 import roslib
 from math import sin, cos, pi
 
-from geometry_msgs.msg import Quaternion
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Quaternion, Twist
+from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
 from tf.broadcaster import TransformBroadcaster
 from std_msgs.msg import Int16
-
-
 from classes.EncoderReader import *
 
-#############################################################################
-class DiffTf:
-    #############################################################################
+class RobotOdometry:
 
-    #############################################################################
     def __init__(self):
-        #############################################################################
-        rospy.init_node("diff_tf")
-        self.nodename = rospy.get_name()
+        rospy.init_node("differential_odometry")
 
-        #### parameters #######
+        # Read parameters from launch file
         self.rate = rospy.get_param('~rate', 100.0)  # the rate at which to publish the transform
         self.ticks_meter = float(rospy.get_param('~ticks_meter', 1000))  # The number of wheel encoder ticks per meter of travel
         self.base_width = float(rospy.get_param('~base_width', 0.245)) # The wheel base width in meters
@@ -64,31 +57,31 @@ class DiffTf:
         # internal data
         self.enc_left = None        # wheel encoder readings
         self.enc_right = None
-        self.left = 0               # actual values coming back from robot
-        self.right = 0
-        self.lmult = 0
-        self.rmult = 0
-        self.prev_lencoder = 0
-        self.prev_rencoder = 0
-        self.x = 0                  # position in xy plane
-        self.y = 0
-        self.th = 0
-        self.dx = 0                 # speeds in x/rotation
-        self.dr = 0
-        self.then = rospy.Time.now()
 
+        [self.left, self.right, self.lmult, self.rmult, self.prev_lencoder, self.prev_rencoder] = [0, 0, 0, 0, 0, 0]
+
+        # (x, y) position in xy plane - (dx, dr) speeds in x/rotation
+        [self.x, self.y, self.th, self.dx, self.dr, self.v_xi] = [0, 0, 0, 0, 0, 0]
+
+        self.then = rospy.Time.now()
         self.seq = 0
 
-        # subscriptions
+        # set v_xi to zero and send initial command
+        self.v_xi_msg = Float32()
+        self.v_xi_msg.data = self.v_xi
+        self.pub_v_xi.publish(self.v_xi_msg)
 
+        # Publishers
         self.odomPub = rospy.Publisher("/robot/odom", Odometry, queue_size=1)
+        self.pub_v_xi = rospy.Publisher('/robot/v_xi', Float32, queue_size=1)
+
         self.odomBroadcaster = TransformBroadcaster()
 
+        # subscribers
         self.sub_odometry = rospy.Subscriber('/robot/odom_reset', Odometry, self.reset_odometry_message, queue_size=1)
 
-        spi_device = 0
-        port_CE0 = 0
-        port_CE1 = 1
+        # SPI config
+        [spi_device, port_CE0, port_CE1] = [0, 0, 1]
 
         self.enc_reader_1 = EncoderReader(spi_device, port_CE0, 1000000)
         self.enc_reader_2 = EncoderReader(spi_device, port_CE1, 1000000)
@@ -102,76 +95,34 @@ class DiffTf:
     def reset_odometry_message(self, odometry_msg):
         self.enc_left = None        # wheel encoder readings
         self.enc_right = None
-        self.left = 0               # actual values coming back from robot
-        self.right = 0
-        self.lmult = 0
-        self.rmult = 0
-        self.prev_lencoder = 0
-        self.prev_rencoder = 0
-        self.x = 0                  # position in xy plane
-        self.y = 0
-        self.th = 0
-        self.dx = 0                 # speeds in x/rotation
-        self.dr = 0
+
+        [self.left, self.right, self.lmult, self.rmult, self.prev_lencoder, self.prev_rencoder] = [0, 0, 0, 0, 0, 0]
+
+        # (x, y) position in xy plane - (dx, dr) speeds in x/rotation
+        [self.x, self.y, self.th, self.dx, self.dr, self.v_xi] = [0, 0, 0, 0, 0, 0]
+
         self.then = rospy.Time.now()
 
+        # initialize encoders using SPI
         self.enc_reader_1.init_encoder()
         self.enc_reader_2.init_encoder()
 
-        '''
-        # publish the odom information
-        quaternion = Quaternion()
-        quaternion.x = 0.0
-        quaternion.y = 0.0
-        quaternion.z = 0
-        quaternion.w = 0
-
-        self.odomBroadcaster.sendTransform(
-            (0, 0, 0),
-            (quaternion.x, quaternion.y, quaternion.z, quaternion.w),
-            rospy.Time.now(),
-            "robot_tf",
-            "map"
-        )
-
-        odom = Odometry()
-        odom.header.stamp = now
-        odom.header.frame_id = "odom"
-        odom.header.seq = self.seq
-
-        odom.pose.pose.position.x = odometry_msg.pose.pose.position.x
-        odom.pose.pose.position.y = odometry_msg.pose.pose.position.y
-        odom.pose.pose.position.z = odometry_msg.pose.pose.position.z
-        odom.pose.pose.orientation = quaternion
-        odom.child_frame_id = "robot_tf"
-        odom.twist.twist.linear.x = 0
-        odom.twist.twist.linear.y = 0
-        odom.twist.twist.angular.z = 0
-        self.odomPub.publish(odom)
-        '''
-
-    #############################################################################
     def spin(self):
-        #############################################################################
         r = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
-            #enc_2 = self.right_wheel_callback()
-            #enc_1 = self.left_wheel_callback()
-            #rospy.loginfo("R: %f, L: %f, enc_1: %f, enc_2: %f" % (self.enc_reader_1.encoder_count, self.enc_reader_2.encoder_count, enc_1, enc_2))
-
+            #read new value of encoders
             self.right_wheel_callback()
             self.left_wheel_callback()
 
-            self.update()
+            # update odometry based on differential drive
+            self.update_odometry()
             self.set_sequence(self.seq +1)
             r.sleep()
 
         self.enc_reader_1.close_spi()
         self.enc_reader_2.close_spi()
 
-    #############################################################################
-    def update(self):
-        #############################################################################
+    def update_odometry(self):
         now = rospy.Time.now()
         if now > self.t_next:
             elapsed = now - self.then
@@ -198,9 +149,8 @@ class DiffTf:
             self.dr = th / elapsed
 
             ################### by Alen ###################
-            # TODO: publish v_xi
-            # if d != 0 :
-            #   self.v_xi = self.v_xi + d
+            if d != 0 :
+               self.v_xi = self.v_xi + d
             ###############################################
 
             if d != 0:
@@ -215,7 +165,6 @@ class DiffTf:
             if th != 0:
                 self.th = self.th + th
 
-            #rospy.loginfo("x %f y  %f  th  %f enc_left %f enc_right %f ", self.x, self.y, self.th, self.enc_left, self.enc_right)
 
             # publish the odom information
             quaternion = Quaternion()
@@ -227,9 +176,7 @@ class DiffTf:
             self.odomBroadcaster.sendTransform(
                 (self.x, self.y, 0),
                 (quaternion.x, quaternion.y, quaternion.z, quaternion.w),
-                rospy.Time.now(),
-                "robot_tf",
-                "map"
+                rospy.Time.now(), "robot_tf", "map"
             )
 
             odom = Odometry()
@@ -247,8 +194,9 @@ class DiffTf:
             odom.twist.twist.angular.z = self.dr
             self.odomPub.publish(odom)
 
-            #if abs(self.x) > 500 or abs(self.y) > 500:
-            #    self.reset_odometry_message(0)
+            # send v_xi
+            self.v_xi_msg.data = self.v_xi
+            self.pub_v_xi.publish(self.v_xi_msg)
 
     def set_sequence(self, new_seq):
         self.seq = new_seq
@@ -283,10 +231,13 @@ class DiffTf:
 
         return enc
 
-
 if __name__ == '__main__':
-    """ main """
-    diffTf = DiffTf()
-    diffTf.spin()
+    try:
+        diffTf = RobotOdometry()
+        diffTf.spin()
+    except:
+        pass
+
+
 
 

@@ -16,6 +16,7 @@ See the GNU General Public License for more details.
 // ROS dependencies
 #include <ros/ros.h>
 #include "geometry_msgs/Twist.h"
+#include "geometry_msgs/Wrench.h"
 #include "std_msgs/MultiArrayLayout.h"
 #include "std_msgs/MultiArrayDimension.h"
 #include "std_msgs/Int16MultiArray.h"
@@ -53,7 +54,5 @@ D13 SCL
 #define D7 24
 #define D8 25
 #define D9 4
-
-int Arr[10];
 
 #endif //ROBOT_MICRO_ROBOT_TWIST_SUSCRIBER_H

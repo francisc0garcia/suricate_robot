@@ -1,4 +1,4 @@
-#include "robot_micro/robot_twist_subscriber.h"
+#include "robot_micro/robot_wrench_subscriber.h"
 
 int max_pwm = 255;
 double scaling_pwm = 1;
@@ -21,6 +21,11 @@ std::string topic_name = "";
 
 bool enable_motors = true;
 
+// Robot specific
+double radius = 0.16;
+double L_p = 0.6655;
+
+// Reset motors: put zero all outputs
 void resetPWM(){
     // Reset
     gpioPWM(M1_PWM, 0);
@@ -32,22 +37,14 @@ void resetPWM(){
     gpioWrite(M2_PWM, PI_LOW);
 }
 
-// TODO: Rename the Twist command ()subscriber into a Wrench
-
-void velCallback(geometry_msgs::Twist::ConstPtr vel)
+void wrenchCallback(geometry_msgs::Wrench::ConstPtr wrench_temp)
 {
     if(enable_motors){
-        double dx = vel->linear.x;
-        double dr = vel->angular.z;
-        //double dy = vel->linear.y;
+        double dx = wrench_temp->force.x; // vel->linear.x;
+        double dr = wrench_temp->torque.z; // vel->angular.z;
 
-        //double right = 1.0 * dx + dr * scaling_pwm / 2 ;
-        //double left = 1.0 * dx - dr * scaling_pwm / 2;
-        double radious = 0.16;
-        double L_p = 0.6655;
-
-        double right = ((100/15)/(2*radious) ) * (dx + L_p * dr)  ;
-        double left = ((100/15)/(2*radious) ) * (dx - L_p * dr)  ;
+        double right = ((100/15)/(2*radius) ) * (dx + L_p * dr)  ;
+        double left = ((100/15)/(2*radius) ) * (dx - L_p * dr)  ;
 
         if(right > 0){
             pwm_R = (int)(max_pwm * right);
@@ -83,33 +80,17 @@ void velCallback(geometry_msgs::Twist::ConstPtr vel)
     }
 }
 
-/*
-void arrayCallback(std_msgs::Int16MultiArray::ConstPtr array)
-{
-    ///List of system variables:
-    ///0. Arduino connection
-    ///1. IMU
-
-    Arr[0] =  array->data[0];
-    Arr[1] =  array->data[1];
-
-    if(Arr[0] == 0 || Arr[1] == 0 ){
-        enable_motors = false;
-        resetPWM();
-    }else{
-        enable_motors = true;
-    }
-}*/
-
 int main(int argc, char **argv)
 {
+    // Define config for GPIO frequency
     gpioCfgClock(4, 0, 0);
-// todo: RENAME THE twist COMMAND TO A WRENCH COMMAND
+
     while(gpioInitialise()<0){
         ROS_INFO("Initializing gpio...");
         sleep(1);
     }
 
+    // Define pins for PWM and digital outputs
     gpioSetPWMfrequency(M1_PWM, 25000);
     gpioSetPWMfrequency(M2_PWM, 25000);
 
@@ -130,13 +111,13 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
     ros::NodeHandle pnode("~");
 
+    //Read parameters from launch file
     pnode.getParam("max_pwm", max_pwm);
     pnode.getParam("scaling_pwm", scaling_pwm);
     pnode.getParam("topic_name", topic_name);
     pnode.getParam("rate", rate);
 
-    ros::Subscriber sub = n.subscribe(topic_name, 1, velCallback);
-    //ros::Subscriber sub1 = n.subscribe("/robot/system_state", 1, arrayCallback);
+    ros::Subscriber sub = n.subscribe(topic_name, 1, wrenchCallback);
 
     ros::Rate r(rate);
 
