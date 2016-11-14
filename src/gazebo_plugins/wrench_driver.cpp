@@ -80,9 +80,13 @@ namespace gazebo {
 
             // Change force:
             //joint_wheel->SetForce(0, torque_joint_);
+            //joint_wheel->SetVelocity(0, 5);
             //this->parent->GetJoint(joint_wheel_name)->SetForce(0, 100);
 
-            link_wheel->SetTorque(math::Vector3(0, direction * torque_joint_, 0));
+            //link_wheel->SetTorque(math::Vector3(0, direction * torque_joint_, 0));
+            //link_wheel->SetTorque(math::Vector3(20, 0, 0));
+
+            joint_wheel->SetParam( "vel", 0, 10 );
 
             //ROS_INFO("Set torque_joint_ to: %f" , torque_joint_);
             last_update_time_ += common::Time(update_period_);
