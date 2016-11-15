@@ -250,7 +250,7 @@
                         <friction>
                             <ode>
                                 <mu>100</mu>
-                                <mu2>50</mu2>
+                                <mu2>500</mu2>
                             </ode>
                             <torsional>
                                 <ode/>
@@ -1290,8 +1290,8 @@
                     <surface>
                         <friction>
                             <ode>
-                                <mu>1</mu>
-                                <mu2>1</mu2>
+                                <mu>100</mu>
+                                <mu2>100</mu2>
                                 <fdir1>0 0 0</fdir1>
                                 <slip1>0</slip1>
                                 <slip2>0</slip2>

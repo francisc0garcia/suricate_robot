@@ -66,14 +66,14 @@ class RobotOdometry:
         self.then = rospy.Time.now()
         self.seq = 0
 
+        # Publishers
+        self.odomPub = rospy.Publisher("/robot/odom", Odometry, queue_size=1)
+        self.pub_v_xi = rospy.Publisher('/robot/v_xi', Float32, queue_size=1) # This is the path variable, published extra
+
         # set v_xi to zero and send initial command
         self.v_xi_msg = Float32()
         self.v_xi_msg.data = self.v_xi
         self.pub_v_xi.publish(self.v_xi_msg)
-
-        # Publishers
-        self.odomPub = rospy.Publisher("/robot/odom", Odometry, queue_size=1)
-        self.pub_v_xi = rospy.Publisher('/robot/v_xi', Float32, queue_size=1)
 
         self.odomBroadcaster = TransformBroadcaster()
 

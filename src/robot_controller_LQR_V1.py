@@ -90,8 +90,17 @@ class RobotControllerNode:
         self.dr = odometry_msg.twist.twist.angular.z
 
         # Update integral
-        self.Idx = self.Idx + self.dx
-        self.Idr = self.Idr + self.dr
+        # self.Idx = self.Idx + self.dx
+        # self.Idr = self.Idr + self.dr
+
+        quaternion = (
+            odometry_msg.pose.pose.orientation.x,
+            odometry_msg.pose.pose.orientation.y,
+            odometry_msg.pose.pose.orientation.z,
+            odometry_msg.pose.pose.orientation.w)
+
+        self.Idx = self.current_position_x
+        (tmDummy, tmpDummy, self.Idr) = euler_from_quaternion(quaternion)
 
     def process_twist_message(self, twist_msg):
         if twist_msg.linear.x > 0:
@@ -119,7 +128,7 @@ class RobotControllerNode:
 
         #k_dr = np.array(  [(-1.05, -0, -160.72 , -4.4415,  0, -40.751), # Ts  = 0.1
          #                 (0, 1.6286, 0, 0, 2.6639, 0) ] )
-        k_dr = np.array(  [(-1.7321, -0, -198.77 , -6.756,  0, -50.551), # cont
+        k_dr = np.array(  [(-1.7321 , -0, -198.77, -6.756 ,  0, -50.551), # cont
                       (0, 1.6286, 0, 0, 2.6639, 0) ] )
 
         u = np.dot(k_dr,  x_transposed)     # u = [linear.x; angular.z]
@@ -135,7 +144,7 @@ class RobotControllerNode:
         self.wrench_cmd.force.y = 0
         self.wrench_cmd.force.z = 0
         self.wrench_cmd.torque.x = 0
-        self.wrench_cmd.torque.y = self.bound_limit(u[0]* 0.005, -10, 10)
+        self.wrench_cmd.torque.y = self.bound_limit(u[0]*0.2, -10, 10)
         self.wrench_cmd.torque.z = 0 # -self.bound_limit(u[1], -7, 7)
         self.pub_wrench.publish(self.wrench_cmd)
 

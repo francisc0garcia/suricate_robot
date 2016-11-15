@@ -79,12 +79,16 @@ namespace gazebo {
         math::Vector3 force(this->wrench_msg_.force.x,this->wrench_msg_.force.y,this->wrench_msg_.force.z);
         math::Vector3 torque(this->wrench_msg_.torque.x,this->wrench_msg_.torque.y,this->wrench_msg_.torque.z);
 
+        // TODO: Think about transforming this into left and right torque
         // Apply force/torque to links
-        this->link_left->AddForce(force);
-        this->link_left->AddTorque(torque);
+        //this->link_left->AddForce(force);
+        //this->link_left->AddTorque(torque);
 
-        this->link_right->AddForce(force);
-        this->link_right->AddTorque(torque);
+        //this->link_right->AddForce(force);
+        //this->link_right->AddTorque(torque);
+
+        this->joint_left->SetForce(1, this->wrench_msg_.torque.y);
+        this->joint_right->SetForce(1, this->wrench_msg_.torque.y);
 
         this->lock.unlock();
     }
