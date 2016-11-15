@@ -46,27 +46,26 @@ namespace gazebo {
         WrenchDriver();
         ~WrenchDriver();
         void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf);
-        void Reset();
 
     protected:
         virtual void UpdateChild();
-        virtual void resetWorldEvent();
         virtual void FiniChild();
 
     private:
         GazeboRosPtr gazebo_ros_;
         physics::ModelPtr parent;
         event::ConnectionPtr update_connection_;
-        event::ConnectionPtr create_connection_;
 
-        physics::LinkPtr link_wheel;
-        physics::JointPtr joint_wheel;
+        physics::LinkPtr link_left, link_right;
+        physics::JointPtr joint_left, joint_right;
+        geometry_msgs::Wrench wrench_msg_;
 
         // ROS STUFF
         ros::Subscriber wrench_subscriber_;
         boost::mutex lock;
 
-        std::string command_topic_;
+        std::string command_topic_, link_left_name, link_right_name, joint_left_name, joint_right_name;
+        double max_wheel_torque;
 
         ros::CallbackQueue queue_;
         boost::thread callback_queue_thread_;
@@ -74,16 +73,6 @@ namespace gazebo {
         void QueueThread();
 
         void cmdWrenchCallback(const geometry_msgs::Wrench::ConstPtr &cmd_msg);
-
-        bool alive_;
-
-        std::string joint_wheel_name, link_wheel_name;
-        double torque_joint_, max_wheel_torque, direction;
-
-        // Update Rate
-        double update_rate_, update_period_;
-
-        common::Time last_update_time_;
     };
 }
 

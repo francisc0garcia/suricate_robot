@@ -1,10 +1,25 @@
 #include "wrench_driver.h"
 
 namespace gazebo {
-    WrenchDriver::WrenchDriver() {}
+    // Constructor
+    WrenchDriver::WrenchDriver() {
+        this->wrench_msg_.force.x = 0;
+        this->wrench_msg_.force.y = 0;
+        this->wrench_msg_.force.z = 0;
+        this->wrench_msg_.torque.x = 0;
+        this->wrench_msg_.torque.y = 0;
+        this->wrench_msg_.torque.z = 0;
+    }
 
     // Destructor
-    WrenchDriver::~WrenchDriver() {}
+    WrenchDriver::~WrenchDriver() {
+        event::Events::DisconnectWorldUpdateBegin(this->update_connection_);
+
+        // Custom Callback Queue
+        this->queue_.clear();
+        this->queue_.disable();
+        this->callback_queue_thread_.join();
+    }
 
     // Load the controller
     void WrenchDriver::Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf) {
@@ -15,30 +30,24 @@ namespace gazebo {
         // Make sure the ROS node for Gazebo has already been initialized
         gazebo_ros_->isInitialized();
 
+        // Read parameters from launch file
         gazebo_ros_->getParameter<std::string>(command_topic_, "commandTopic", "cmd_wrench");
-        gazebo_ros_->getParameter<std::string>(joint_wheel_name, "joint_wheel", "joint_wheel_name");
-        gazebo_ros_->getParameter<std::string>(link_wheel_name, "link_wheel", "link_wheel_name");
-        gazebo_ros_->getParameter<double>(max_wheel_torque, "max_wheel_torque", 5.0);
-        gazebo_ros_->getParameter<double>(update_rate_, "updateRate", 100.0);
-        gazebo_ros_->getParameter<double>(direction, "direction", 1);
+        gazebo_ros_->getParameter<std::string>(link_left_name, "link_left", "link_left_name");
+        gazebo_ros_->getParameter<std::string>(link_right_name, "link_right", "link_right_name");
+        gazebo_ros_->getParameter<std::string>(joint_left_name, "joint_left", "joint_left_name");
+        gazebo_ros_->getParameter<std::string>(joint_right_name, "joint_right", "joint_right_name");
+        gazebo_ros_->getParameter<double>(max_wheel_torque, "max_wheel_torque", 10.0);
 
-        link_wheel = this->parent->GetLink(link_wheel_name);
-        joint_wheel = gazebo_ros_->getJoint(parent, "joint_wheel", "_joint_wheel");
-        joint_wheel->SetParam("fmax", 0, max_wheel_torque);
+        // Search for links and joints
+        link_left = this->parent->GetLink(link_left_name);
+        link_right = this->parent->GetLink(link_right_name);
+        joint_left = this->parent->GetJoint(joint_left_name);
+        joint_right = this->parent->GetJoint(joint_right_name);
 
-        if (!joint_wheel) {
-            ROS_ERROR("Not found: (joint_wheel)");
+        if (!joint_left || !joint_right || !link_left || !link_right) {
+            ROS_ERROR("Not found: (!joint_left || !joint_right || !link_left || !link_right)");
             return;
         }
-
-        // Initialize update rate stuff
-        if (this->update_rate_ > 0.0)
-            this->update_period_ = 1.0 / this->update_rate_;
-        else
-            this->update_period_ = 0.0;
-        last_update_time_ = parent->GetWorld()->GetSimTime();
-
-        alive_ = true;
 
         // ROS: Subscribe to wrench command topic (usually "cmd_wrench")
         ROS_INFO("%s: Try to subscribe to %s!", gazebo_ros_->info(), command_topic_.c_str());
@@ -60,46 +69,28 @@ namespace gazebo {
         this->update_connection_ =
                 event::Events::ConnectWorldUpdateBegin(boost::bind(&WrenchDriver::UpdateChild, this));
 
-        this->create_connection_ =
-                event::Events::ConnectWorldReset(boost::bind(&WrenchDriver::resetWorldEvent, this));
     }
 
-    void WrenchDriver::Reset() {
-        last_update_time_ = parent->GetWorld()->GetSimTime();
-        joint_wheel->SetParam("fmax", 0, max_wheel_torque);
-    }
-
-    // Update the controller
+    // Update force and torque
     void WrenchDriver::UpdateChild() {
-        common::Time current_time = parent->GetWorld()->GetSimTime();
-        double seconds_since_last_update = (current_time - last_update_time_).Double();
-        //joint_wheel
-        if (seconds_since_last_update > update_period_) {
+        this->lock.lock();
 
-            // TODO: does not work!
+        //update vectors of force and torque
+        math::Vector3 force(this->wrench_msg_.force.x,this->wrench_msg_.force.y,this->wrench_msg_.force.z);
+        math::Vector3 torque(this->wrench_msg_.torque.x,this->wrench_msg_.torque.y,this->wrench_msg_.torque.z);
 
-            // Change force:
-            //joint_wheel->SetForce(0, torque_joint_);
-            //joint_wheel->SetVelocity(0, 5);
-            //this->parent->GetJoint(joint_wheel_name)->SetForce(0, 100);
+        // Apply force/torque to links
+        this->link_left->AddForce(force);
+        this->link_left->AddTorque(torque);
 
-            //link_wheel->SetTorque(math::Vector3(0, direction * torque_joint_, 0));
-            //link_wheel->SetTorque(math::Vector3(20, 0, 0));
+        this->link_right->AddForce(force);
+        this->link_right->AddTorque(torque);
 
-            joint_wheel->SetParam( "vel", 0, 10 );
-
-            //ROS_INFO("Set torque_joint_ to: %f" , torque_joint_);
-            last_update_time_ += common::Time(update_period_);
-        }
-    }
-
-    void WrenchDriver::resetWorldEvent() {
-        ROS_INFO("WrenchDriver::resetWorldEvent()");
+        this->lock.unlock();
     }
 
     // Finalize the controller
     void WrenchDriver::FiniChild() {
-        alive_ = false;
         queue_.clear();
         queue_.disable();
         gazebo_ros_->node()->shutdown();
@@ -107,18 +98,21 @@ namespace gazebo {
     }
 
     void WrenchDriver::cmdWrenchCallback(const geometry_msgs::Wrench::ConstPtr &cmd_msg) {
-        boost::mutex::scoped_lock scoped_lock(lock);
-        torque_joint_ = cmd_msg->force.x;
+        this->wrench_msg_.force.x = cmd_msg->force.x;
+        this->wrench_msg_.force.y = cmd_msg->force.y;
+        this->wrench_msg_.force.z = cmd_msg->force.z;
+        this->wrench_msg_.torque.x = cmd_msg->torque.x;
+        this->wrench_msg_.torque.y = cmd_msg->torque.y;
+        this->wrench_msg_.torque.z = cmd_msg->torque.z;
     }
 
     void WrenchDriver::QueueThread() {
         static const double timeout = 0.01;
 
-        while (alive_ && gazebo_ros_->node()->ok()) {
+        while (gazebo_ros_->node()->ok()) {
             queue_.callAvailable(ros::WallDuration(timeout));
         }
 
-        this->Reset();
         this->FiniChild();
     }
 

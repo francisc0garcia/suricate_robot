@@ -70,11 +70,11 @@ source: http://abyz.co.uk/rpi/pigpio/download.html
     make -j4
     sudo make install
 
-Then we should install some additional ROS packages:
+Then we should install some additional dependencies and ROS packages:
 
 .. code-block:: none
 
-    sudo apt-get install ros-kinetic-teleop-twist-joy  ros-kinetic-rviz-imu-plugin python-smbus
+    sudo apt-get install libqwt-dev ros-kinetic-teleop-twist-joy  ros-kinetic-rviz-imu-plugin python-smbus ros-kinetic-rqt-multiplot
 
 
 Finally we create a workspace for project, clone github repository, install dependencies and compile it:

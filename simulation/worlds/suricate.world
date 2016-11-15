@@ -966,7 +966,7 @@
                     <pose frame=''>0 0 0.16 1.5707 -0 0</pose>
                 </inertial>
                 <gravity>1</gravity>
-                <self_collide>0</self_collide>
+                <self_collide>1</self_collide>
                 <kinematic>0</kinematic>
                 <visual name='visual'>
                     <pose frame=''>0 0 0.16 1.5707 -0 0</pose>
@@ -1349,7 +1349,7 @@
                     <pose frame=''>0 0 0.16 1.5707 -0 0</pose>
                 </inertial>
                 <gravity>1</gravity>
-                <self_collide>0</self_collide>
+                <self_collide>1</self_collide>
                 <kinematic>0</kinematic>
                 <visual name='visual'>
                     <pose frame=''>0 0 0.16 1.5707 -0 0</pose>
@@ -1853,7 +1853,26 @@
                 </physics>
             </joint>
 
-            <!--
+            <plugin name='imu_plugin' filename='libgazebo_ros_imu.so'>
+                <bodyName>link_box_batteries</bodyName>
+                <updateRate>130.0</updateRate>
+                <topicName>/robot/imu</topicName>
+                <serviceName>imu_service</serviceName>
+                <gaussianNoise>0.1</gaussianNoise>
+                <xyzOffset>0 0 0</xyzOffset>
+                <rpyOffset>0 0 0</rpyOffset>
+            </plugin>
+
+
+            <plugin name='gazebo_ros_force' filename='libgazebo_ros_force.so'>
+                <alwaysOn>true</alwaysOn>
+                <update>100</update>
+                <updateRate>100.0</updateRate>
+                <bodyName>link_wheel_right</bodyName>
+                <topicName>/force_test</topicName>
+            </plugin>
+
+
             <plugin name='differential_drive_controller' filename='libgazebo_ros_diff_drive.so'>
                 <alwaysOn>true</alwaysOn>
                 <legacyMode>true</legacyMode>
@@ -1870,27 +1889,20 @@
                 <publishWheelTF>true</publishWheelTF>
                 <publishWheelJointState>true</publishWheelJointState>
             </plugin>
-            -->
 
-            <plugin name='imu_plugin' filename='libgazebo_ros_imu.so'>
-                <bodyName>link_box_batteries</bodyName>
-                <updateRate>130.0</updateRate>
-                <topicName>/robot/imu</topicName>
-                <serviceName>imu_service</serviceName>
-                <gaussianNoise>0.1</gaussianNoise>
-                <xyzOffset>0 0 0</xyzOffset>
-                <rpyOffset>0 0 0</rpyOffset>
-            </plugin>
 
-            <plugin name='wrench_driver_left' filename='libwrench_driver.so'>
-                <updateRate>500</updateRate>
-                <joint_wheel>join_wheel_left</joint_wheel>
-                <link_wheel>link_wheel_left</link_wheel>
-                <direction>1</direction>
+            <plugin name='wrench_driver' filename='libwrench_driver.so'>
+                <updateRate>40</updateRate>
+                <joint_left>join_wheel_left</joint_left>
+                <link_left>link_wheel_left</link_left>
+                <joint_right>join_wheel_right</joint_right>
+                <link_right>link_wheel_right</link_right>
                 <commandTopic>/robot/cmd_wrench</commandTopic>
                 <max_wheel_torque>100</max_wheel_torque>
             </plugin>
 
+
+<!--
             <plugin name='wrench_driver_right' filename='libwrench_driver.so'>
                 <updateRate>500</updateRate>
                 <joint_wheel>join_wheel_right</joint_wheel>
@@ -1899,7 +1911,7 @@
                 <commandTopic>/robot/cmd_wrench</commandTopic>
                 <max_wheel_torque>100</max_wheel_torque>
             </plugin>
-
+-->
         </model>
         <model name='youbot'>
             <pose frame=''>0.006432 1.4527 0.09 0 -0 0</pose>
