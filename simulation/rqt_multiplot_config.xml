@@ -39,7 +39,7 @@
                                     <type>geometry_msgs/Wrench</type>
                                 </x_axis>
                                 <y_axis>
-                                    <field>torque/y</field>
+                                    <field>force/x</field>
                                     <field_type>0</field_type>
                                     <scale>
                                         <absolute_maximum>1000</absolute_maximum>
@@ -71,7 +71,7 @@
                                 <type>0</type>
                             </style>
                             <subscriber_queue_size>100</subscriber_queue_size>
-                            <title>torque_y</title>
+                            <title>u_1</title>
                         </curve_0>
                         <curve_1>
                             <axes>

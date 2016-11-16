@@ -41,6 +41,7 @@ class RobotControllerNode:
         [self.roll, self.pitch, self.yaw, self.offset_roll, self.offset_pitch] = [0.0, 0.0, 0.0, 0.0, 0.0]
         [self.output, self.desired_x, self.desired_z, self.current_position_x, self.current_vel_x] = [0.0, 0.0, 0.0, 0.0, 0.0]
         [self.dx, self.dr, self.gz, self.Idx, self.Idr] = [0.0, 0.0, 0.0, 0.0, 0.0]
+        [self.xi_des, self.psi_des] = [0.0, 0.0]
 
         self.enable_controller = False
         self.scaling_joy = 1.0
@@ -74,9 +75,9 @@ class RobotControllerNode:
         (self.roll, self.pitch, self.yaw) = euler_from_quaternion(quaternion)
 
         # Convert to degrees and add offset
-        self.roll = self.roll * rad2degrees  + self.offset_roll
-        self.pitch = self.pitch * rad2degrees + self.offset_pitch
-        self.yaw = self.yaw * rad2degrees
+        self.roll = self.roll  + self.offset_roll
+        self.pitch = self.pitch   + self.offset_pitch
+        self.yaw = self.yaw
 
         self.gz = imuMsg.angular_velocity.x
 
@@ -124,7 +125,10 @@ class RobotControllerNode:
         dv_psi = self.dr     # self.dr
         dv_phi = self.gz     # gy ? or gz
 
-        x = np.array( [v_xi, v_psi, v_phi, dv_xi, dv_psi, dv_phi])
+        self.xi_des = 0
+        self.psi_des = 0
+
+        x = np.array( [v_xi - self.xi_des , v_psi - self.psi_des, v_phi, dv_xi, dv_psi, dv_phi])
         x_transposed = np.transpose(x)
 
         #k_dr = np.array(  [(-1.05, -0, -160.72 , -4.4415,  0, -40.751), # Ts  = 0.1
@@ -137,13 +141,14 @@ class RobotControllerNode:
         # for debugging:
         #rospy.loginfo("u: 1: %f 2: %f", u[0], u[1])
 
+        self.gain_LQR = 0.008
         # Publish new wrench value
-        self.wrench_cmd.force.x = self.bound_limit(u[0] * self.gain_LQR, -10, 10)
+        self.wrench_cmd.force.x = self.bound_limit(u[0] * self.gain_LQR, -2, 2)
         self.wrench_cmd.force.y = 0
         self.wrench_cmd.force.z = 0
         self.wrench_cmd.torque.x = 0
         self.wrench_cmd.torque.y = 0 # self.bound_limit(u[0]*0.2, -10, 10)
-        self.wrench_cmd.torque.z = self.bound_limit(u[1] * self.gain_LQR, -10, 10)
+        self.wrench_cmd.torque.z = self.bound_limit(-u[1] * self.gain_LQR , -2, 2)
         self.pub_wrench.publish(self.wrench_cmd)
 
     def disable_controller(self):
