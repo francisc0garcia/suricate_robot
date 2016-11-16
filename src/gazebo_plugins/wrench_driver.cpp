@@ -75,20 +75,22 @@ namespace gazebo {
     void WrenchDriver::UpdateChild() {
         this->lock.lock();
 
-        //update vectors of force and torque
-        math::Vector3 force(this->wrench_msg_.force.x,this->wrench_msg_.force.y,this->wrench_msg_.force.z);
-        math::Vector3 torque(this->wrench_msg_.torque.x,this->wrench_msg_.torque.y,this->wrench_msg_.torque.z);
+        //Apply force/torque to links
+        //this->joint_left->SetForce(1, this->wrench_msg_.torque.y);
+        //this->joint_right->SetForce(1, this->wrench_msg_.torque.y);
 
-        // TODO: Think about transforming this into left and right torque
-        // Apply force/torque to links
-        //this->link_left->AddForce(force);
-        //this->link_left->AddTorque(torque);
+        // Robot specific
+        double radius = 0.16;
+        double L_p = 0.6655;
 
-        //this->link_right->AddForce(force);
-        //this->link_right->AddTorque(torque);
+        double dx = this->wrench_msg_.force.x; // vel->linear.x;
+        double dr = this->wrench_msg_.torque.z; // vel->angular.z;
 
-        this->joint_left->SetForce(1, this->wrench_msg_.torque.y);
-        this->joint_right->SetForce(1, this->wrench_msg_.torque.y);
+        double right = ((100/15)/(2*radius)) * (dx + L_p * dr);
+        double left = ((100/15)/(2*radius)) * (dx - L_p * dr);
+
+        this->joint_left->SetForce(1, right);
+        this->joint_right->SetForce(1, left);
 
         this->lock.unlock();
     }

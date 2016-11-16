@@ -48,7 +48,8 @@ class RobotControllerNode:
         rospy.on_shutdown(self.shutdown_node)
 
         # Read input parameters from launch file
-        self.rate = rospy.get_param('~rate', 10.0)
+        self.rate = rospy.get_param('~rate', 200.0)
+        self.gain_LQR = rospy.get_param('~gain_LQR', 0.007)
 
         # Setup ROS Subscribers
         self.sub = rospy.Subscriber('/robot/imu', Imu, self.process_imu_message, queue_size=1)
@@ -134,18 +135,15 @@ class RobotControllerNode:
         u = np.dot(k_dr,  x_transposed)     # u = [linear.x; angular.z]
 
         # for debugging:
-        #print Kdr
-        #print x_transposed
-        #print u
         #rospy.loginfo("u: 1: %f 2: %f", u[0], u[1])
 
         # Publish new wrench value
-        self.wrench_cmd.force.x = 0 # self.bound_limit(u[0]* 0.009, -7, 7)
+        self.wrench_cmd.force.x = self.bound_limit(u[0] * self.gain_LQR, -10, 10)
         self.wrench_cmd.force.y = 0
         self.wrench_cmd.force.z = 0
         self.wrench_cmd.torque.x = 0
-        self.wrench_cmd.torque.y = self.bound_limit(u[0]*0.2, -10, 10)
-        self.wrench_cmd.torque.z = 0 # -self.bound_limit(u[1], -7, 7)
+        self.wrench_cmd.torque.y = 0 # self.bound_limit(u[0]*0.2, -10, 10)
+        self.wrench_cmd.torque.z = self.bound_limit(u[1] * self.gain_LQR, -10, 10)
         self.pub_wrench.publish(self.wrench_cmd)
 
     def disable_controller(self):
