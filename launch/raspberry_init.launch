@@ -2,7 +2,7 @@
     <node pkg="suricate_robot" type="robot_twist_subscriber" name="robot_twist_subscriber" required="true" >
         <param name="max_pwm" type="int" value="255" />
         <param name="scaling_pwm" type="double" value="1" />
-        <param name="topic_name" type="string" value="/robot/cmd_vel_real" />
+        <param name="topic_name" type="string" value="/robot/cmd_wrench" />
         <param name="rate" type="int" value="100" />
     </node>
 
@@ -21,7 +21,7 @@
         <param name="encoder_max" type="double" value="4294964113" />
     </node>
 
-    <node pkg="robot_micro" type="robot_safety_checker.py" name="robot_safety_checker" required="true" >
+    <node pkg="suricate_robot" type="robot_safety_checker.py" name="robot_safety_checker" required="true" >
         <param name="rate" type="int" value="50" />
     </node>
 

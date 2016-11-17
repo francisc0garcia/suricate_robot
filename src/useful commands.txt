@@ -39,6 +39,7 @@ source devel/setup.bash
 export ROS_IP=192.168.0.206
 export ROS_MASTER_URI=http://192.168.0.203:11311
 roslaunch suricate_robot PC_launcher_simulation.launch
+roslaunch suricate_robot PC_launcher.launch
 
 - Launch raspberry
 

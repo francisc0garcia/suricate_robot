@@ -32,16 +32,27 @@ class RobotControllerNode:
     def __init__(self):
         # Setup ROS Publisher
         self.pub_wrench = rospy.Publisher('/robot/cmd_wrench', Wrench, queue_size=1)
+        self.pub_angle = rospy.Publisher('/robot/angle', Float32, queue_size=1)
+        self.pub_path = rospy.Publisher('/robot/path', Float32, queue_size=1)
 
         # Reset output wrench
         self.wrench_cmd = Wrench()
         self.pub_wrench.publish(self.wrench_cmd)
+
+        self.angle_msg = Float32()
+        self.angle_msg.data = 0
+        self.pub_angle.publish(self.angle_msg)
+
+        self.path_msg = Float32()
+        self.path_msg.data = 0
+        self.pub_path.publish(self.path_msg)
 
         # Init values
         [self.roll, self.pitch, self.yaw, self.offset_roll, self.offset_pitch] = [0.0, 0.0, 0.0, 0.0, 0.0]
         [self.output, self.desired_x, self.desired_z, self.current_position_x, self.current_vel_x] = [0.0, 0.0, 0.0, 0.0, 0.0]
         [self.dx, self.dr, self.gz, self.Idx, self.Idr] = [0.0, 0.0, 0.0, 0.0, 0.0]
         [self.xi_des, self.psi_des] = [0.0, 0.0]
+        self.IIdx = 0.0
 
         self.enable_controller = False
         self.scaling_joy = 1.0
@@ -101,7 +112,8 @@ class RobotControllerNode:
             odometry_msg.pose.pose.orientation.z,
             odometry_msg.pose.pose.orientation.w)
 
-        self.Idx = self.current_position_x
+
+        #self.Idx = self.current_position_x #this is in inertial frame!
         (tmDummy, tmpDummy, self.Idr) = euler_from_quaternion(quaternion)
 
     def process_twist_message(self, twist_msg):
@@ -118,12 +130,21 @@ class RobotControllerNode:
 
     def update_controller(self):
         # setup up sampling time at 10 hz
-        v_xi = self.Idx      # integral self.dx
+        #v_xi = self.Idx      # integral self.dx from encoder (relative theta * r_w)
         v_psi = self.Idr     # integral self.dr
-        v_phi = self.pitch   # pitch
-        dv_xi = self.dx      # self.dx
+        v_phi = self.pitch - 0.017   # pitch
+        dv_xi = self.dx      # self.dx from encoder (relative theta * r_w)
         dv_psi = self.dr     # self.dr
         dv_phi = self.gz     # gy ? or gz
+
+
+        # correction of the angle
+        r_w = 0.273
+        #v_xi = v_xi - v_phi*r_w
+        dv_xi = dv_xi - dv_phi*r_w
+        self.Idx = self.Idx + dv_xi / 150
+        v_xi = self.Idx / 1.8 # correction factor
+        self.IIdx = self.IIdx + v_xi / 150
 
         self.xi_des = 0
         self.psi_des = 0
@@ -133,23 +154,44 @@ class RobotControllerNode:
 
         #k_dr = np.array(  [(-1.05, -0, -160.72 , -4.4415,  0, -40.751), # Ts  = 0.1
          #                 (0, 1.6286, 0, 0, 2.6639, 0) ] )
-        k_dr = np.array(  [(-1.7321 , -0, -198.77, -6.756 ,  0, -50.551), # cont
-                      (0, 1.6286, 0, 0, 2.6639, 0) ] )
+        #k_dr = np.array(  [(-1.7321/1000 , -0, -170.77, -6.756/1000 ,  0, 39.551), # cont
+         #             (0, 1.6286, 0, 0, 2.6639, 0) ] )
+        k_dr = np.array(  [(  -2.27/20 , -0, -155.1, -6.6/70,  0, 37.9), # cont
+                                         (0, -0.3088, 0, 0, -0.55, 0) ] )
+        #k_dr = np.array(  [(  2.27*5   , -0, -155.1/1, 6.6/1.5,  0, 37.9/3), # cont
+         #                 (0, -0.3088, 0, 0, -0.55, 0) ] )
+
 
         u = np.dot(k_dr,  x_transposed)     # u = [linear.x; angular.z]
 
         # for debugging:
-        #rospy.loginfo("u: 1: %f 2: %f", u[0], u[1])
+        # rospy.loginfo("v_xi: %f v_psi: %f v_phi: %f dv_xi: %f dv_psi: %f dv_phi: %f", v_xi, v_psi, v_phi, dv_xi, dv_psi, dv_phi)
 
-        self.gain_LQR = 0.008
+        #[0] = u[0] + 0.001 * self.IIdx
+
+        #====================================
+        # compensate for the dead zone
+        if np.abs(u[0]) < 2.5 :
+            if np.abs(u[0]) < 0.03:
+                u[0] = 0.0
+            else :
+                u[0] = 2.5 *np.sign(u[0])
+        #====================================
+
+        self.gain_LQR =  0.0019
         # Publish new wrench value
         self.wrench_cmd.force.x = self.bound_limit(u[0] * self.gain_LQR, -2, 2)
         self.wrench_cmd.force.y = 0
         self.wrench_cmd.force.z = 0
         self.wrench_cmd.torque.x = 0
         self.wrench_cmd.torque.y = 0 # self.bound_limit(u[0]*0.2, -10, 10)
-        self.wrench_cmd.torque.z = self.bound_limit(-u[1] * self.gain_LQR , -2, 2)
+        self.wrench_cmd.torque.z = self.bound_limit(u[1] * self.gain_LQR * 0, -2, 2)
         self.pub_wrench.publish(self.wrench_cmd)
+
+        self.angle_msg.data = v_phi #* rad2degrees
+        self.pub_angle.publish(self.angle_msg )
+        self.path_msg.data = v_xi
+        self.pub_path.publish(self.path_msg)
 
     def disable_controller(self):
         self.enable_controller = False
