@@ -20,6 +20,11 @@
             <max_step_size>0.001</max_step_size>
             <real_time_factor>1</real_time_factor>
             <real_time_update_rate>1000</real_time_update_rate>
+            <ode>
+                <solver> # added from internet to improve friction behaviour
+                    <iters>10</iters>
+                </solver>
+            </ode>
         </physics>
         <scene>
             <ambient>0.4 0.4 0.4 1</ambient>
@@ -249,7 +254,7 @@
                     <surface>
                         <friction>
                             <ode>
-                                <mu>100</mu>
+                                <mu>500</mu>
                                 <mu2>500</mu2>
                             </ode>
                             <torsional>
@@ -1290,8 +1295,8 @@
                     <surface>
                         <friction>
                             <ode>
-                                <mu>100</mu>
-                                <mu2>100</mu2>
+                                <mu>1</mu>
+                                <mu2>1</mu2>
                                 <fdir1>0 0 0</fdir1>
                                 <slip1>0</slip1>
                                 <slip2>0</slip2>
@@ -1892,7 +1897,7 @@
 
 
             <plugin name='wrench_driver' filename='libwrench_driver.so'>
-                <updateRate>40</updateRate>
+                <updateRate>150</updateRate>
                 <joint_left>join_wheel_left</joint_left>
                 <link_left>link_wheel_left</link_left>
                 <joint_right>join_wheel_right</joint_right>
