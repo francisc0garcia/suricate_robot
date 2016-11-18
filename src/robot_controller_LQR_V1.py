@@ -53,6 +53,7 @@ class RobotControllerNode:
         [self.dx, self.dr, self.gz, self.Idx, self.Idr] = [0.0, 0.0, 0.0, 0.0, 0.0]
         [self.xi_des, self.psi_des] = [0.0, 0.0]
         self.IIdx = 0.0
+        self.v_xi = 0
 
         self.enable_controller = False
         self.scaling_joy = 1.0
@@ -62,6 +63,7 @@ class RobotControllerNode:
         # Read input parameters from launch file
         self.rate = rospy.get_param('~rate', 200.0)
         self.gain_LQR = rospy.get_param('~gain_LQR', 0.007)
+        self.environment = rospy.get_param('~environment','simulation')
 
         # Setup ROS Subscribers
         self.sub = rospy.Subscriber('/robot/imu', Imu, self.process_imu_message, queue_size=1)
@@ -92,6 +94,8 @@ class RobotControllerNode:
 
         self.gz = imuMsg.angular_velocity.x
 
+
+
         #rospy.loginfo("Angle: roll %f pitch %f yaw %f", self.roll, self.pitch, self.yaw)
         #time.sleep(0.2)
 
@@ -112,15 +116,21 @@ class RobotControllerNode:
             odometry_msg.pose.pose.orientation.z,
             odometry_msg.pose.pose.orientation.w)
 
+        if self.environment == 'simulation':
+            self.Idx = self.current_position_x #this is in inertial frame!
 
-        self.Idx = self.current_position_x #this is in inertial frame!
         (tmDummy, tmpDummy, self.Idr) = euler_from_quaternion(quaternion)
 
     def process_twist_message(self, twist_msg):
         if twist_msg.linear.x > 0:
             self.enable_controller = True
 
-        self.desired_x = twist_msg.linear.x
+        if twist_msg.linear.x > 0.5:
+            self.desired_x = self.desired_x + 0.1
+
+        if twist_msg.linear.x < -0.5:
+            self.desired_x = self.desired_x - 0.1
+
         self.desired_z = twist_msg.angular.z
 
     def reconfig_callback(self, config, level):
@@ -130,25 +140,31 @@ class RobotControllerNode:
 
     def update_controller(self):
         # setup up sampling time at 10 hz
-        v_xi = self.Idx      # integral self.dx from encoder (relative theta * r_w)
+        if self.environment == 'simulation':
+            self.v_xi = self.Idx      # integral self.dx from encoder (relative theta * r_w)
+
         v_psi = self.Idr     # integral self.dr
         v_phi = self.pitch - 0.0   # pitch
         dv_xi = self.dx      # self.dx from encoder (relative theta * r_w)
         dv_psi = self.dr     # self.dr
         dv_phi = self.gz     # gy ? or gz
 
+        if self.environment == 'robot':
+            #rospy.loginfo("Robot environment")
 
-        # correction of the angle (only for robot)
-        #r_w = 0.273
-        #v_xi = v_xi - v_phi*r_w
-        #dv_xi = dv_xi - dv_phi*r_w
-        #self.Idx = self.Idx + dv_xi / 150
-        #v_xi = self.Idx / 1.8 # correction factor
-        #self.IIdx = self.IIdx + v_xi / 150
+            # correction of the angle (only for robot)
+            v_phi = v_phi - 0.017
+            r_w = 0.273
+            self.v_xi = self.v_xi - v_phi*r_w
+            dv_xi = dv_xi - dv_phi*r_w
+            self.Idx = self.Idx + dv_xi / 150
+            v_xi = self.Idx / 1.8 # correction factor
+            self.IIdx = self.IIdx + v_xi / 150
+
 
         # TODO: do something like: if a move-command comes, set xi_des = xi_des + epsilon
 
-        self.xi_des = 0
+        self.xi_des = self.desired_x
         self.psi_des = 0
 
         x = np.array( [v_xi - self.xi_des , v_psi - self.psi_des, v_phi, dv_xi, dv_psi, dv_phi])
@@ -158,9 +174,12 @@ class RobotControllerNode:
          #                 (0, 1.6286, 0, 0, 2.6639, 0) ] )
         #k_dr = np.array(  [(-1.7321/1000 , -0, -170.77, -6.756/1000 ,  0, 39.551), # cont
          #             (0, 1.6286, 0, 0, 2.6639, 0) ] )
-        #k_dr = np.array(  [(  -2.27/20 , -0, -155.1, -6.6/70,  0, 37.9), # cont
-         #                                (0, -0.3088, 0, 0, -0.55, 0) ] )
-        k_dr = np.array(  [(  -1.4*11.5 , -0, -194.5*1.5, -5.82*7,  0, -49.3/1.9), # cont for gazebo
+        if self.environment == 'robot':
+            k_dr = np.array(  [(  -2.27/30 , -0, -155.1, -6.6/70,  0, 37.9), # cont
+                           (0, -0.3088, 0, 0, -0.55, 0) ] )
+
+        if self.environment == 'simulation':
+            k_dr = np.array(  [(  -1.4*11.5 , -0, -194.5*1.5, -5.82*7,  0, -49.3/1.9), # cont for gazebo
                          (0, -0.3088, 0, 0, -0.55, 0) ] )
 
 
@@ -171,17 +190,19 @@ class RobotControllerNode:
 
         #[0] = u[0] + 0.001 * self.IIdx
 
-        #====================================
-        # compensate for the dead zone
-        #if np.abs(u[0]) < 2.5 :
-         #   if np.abs(u[0]) < 0.1:
-          #      u[0] = 0.0
-           # else :
-            #    u[0] = 2.5 *np.sign(u[0])
-        #====================================
+        if self.environment == 'robot':
+            #====================================
+            # compensate for the dead zone
+            if np.abs(u[0]) < 2.3 :
+                if np.abs(u[0]) < 0.05:
+                    u[0] = 0.0
+                else :
+                    u[0] = 2.3 *np.sign(u[0])
+            #====================================
 
-        #self.gain_LQR =  0.0019 # for the robot
-        self.gain_LQR =  0.05 # for gazebo
+        # self.gain_LQR =  0.0019 # for the robot
+        # self.gain_LQR =  0.05 # for gazebo
+
         # Publish new wrench value
         self.wrench_cmd.force.x = self.bound_limit(u[0] * self.gain_LQR, -2, 2)
         self.wrench_cmd.force.y = 0

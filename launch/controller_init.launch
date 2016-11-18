@@ -17,7 +17,7 @@
     <node pkg="suricate_robot" type="robot_controller_LQR_V1.py" name="robot_controller" required="true" >
         <param name="scaling_joy" type="double" value="2.1" />
         <param name="rate" type="double" value="150" />
-        <param name="gain_LQR" type="double" value="0.0004" />
+        <param name="gain_LQR" type="double" value="0.05" />
     </node>
 
     <!--
