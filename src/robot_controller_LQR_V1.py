@@ -146,6 +146,8 @@ class RobotControllerNode:
         #v_xi = self.Idx / 1.8 # correction factor
         #self.IIdx = self.IIdx + v_xi / 150
 
+        # TODO: do something like: if a move-command comes, set xi_des = xi_des + epsilon
+
         self.xi_des = 0
         self.psi_des = 0
 
