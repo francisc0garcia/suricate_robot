@@ -167,7 +167,7 @@ class RobotControllerNode:
         self.xi_des = self.desired_x
         self.psi_des = 0
 
-        x = np.array( [v_xi - self.xi_des , v_psi - self.psi_des, v_phi, dv_xi, dv_psi, dv_phi])
+        x = np.array( [self.v_xi - self.xi_des , v_psi - self.psi_des, v_phi, dv_xi, dv_psi, dv_phi])
         x_transposed = np.transpose(x)
 
         #k_dr = np.array(  [(-1.05, -0, -160.72 , -4.4415,  0, -40.751), # Ts  = 0.1
@@ -212,9 +212,9 @@ class RobotControllerNode:
         self.wrench_cmd.torque.z = self.bound_limit(u[1] * self.gain_LQR * 1, -2, 2)
         self.pub_wrench.publish(self.wrench_cmd)
 
-        self.angle_msg.data = dv_phi #* rad2degrees
+        self.angle_msg.data = v_phi #* rad2degrees
         self.pub_angle.publish(self.angle_msg )
-        self.path_msg.data = dv_xi
+        self.path_msg.data = self.v_xi
         self.pub_path.publish(self.path_msg)
 
     def disable_controller(self):
