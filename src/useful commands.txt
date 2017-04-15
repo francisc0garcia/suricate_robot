@@ -36,10 +36,10 @@ export CXX=/usr/bin/g++-5
 
 cd ~/Documents/UNI/code/suricate_micro/
 source devel/setup.bash
-export ROS_IP=192.168.0.206
+export ROS_IP=192.168.0.105
 export ROS_MASTER_URI=http://192.168.0.203:11311
-roslaunch suricate_robot PC_launcher_simulation.launch
 roslaunch suricate_robot PC_launcher.launch
+roslaunch suricate_robot PC_launcher_simulation.launch
 
 - Launch raspberry
 
@@ -56,7 +56,7 @@ roslaunch suricate_robot safety_checker_init.launch
 
 cd ~/Documents/code/suricate_micro/
 source devel/setup.bash
-export ROS_IP=192.168.0.204
+export ROS_IP=192.168.0.203
 roslaunch robot_starter robot_starter.launch
 
 - Clean start up

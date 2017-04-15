@@ -18,7 +18,10 @@ then you can compile using GCC 5.
 ROS related problems
 ^^^^^^^^^^^^^^^^^^^^
 
-under development...
+* When I relaunch Raspberry PI2 nodes, sad face is showed by LED matrix.
+
+Answer: sometimes, when you relaunch nodes, an instance of PIGPIO remain active and generate conflicts, you can stop
+nodes and wait for couple of minutes before everything is closed by ubuntu, and then start again ros nodes.
 
 Interface problems
 ^^^^^^^^^^^^^^^^^^
@@ -42,6 +45,17 @@ Answer: You can use pigpio scope [http://abyz.co.uk/rpi/pigpio/piscope.html], in
     export PIGPIO_ADDR=IP_OF_RASPBERRY
     piscope
 
+* I get error: initInitialise: bind to port 8888 failed (Address already in use)
+
+Answer: This is caused by PIGPIO's daemon, you can stop all ros process, and kill its process using
+
+.. code-block:: none
+
+    sudo killall -9 pigpiod
+    sudo rm /var/run/pigpio.pid
+
+then wait some seconds before it is closed by ubuntu. After thath, you should be able to execute normally.
+
 
 Other questions
 ^^^^^^^^^^^^^^^
@@ -56,6 +70,12 @@ terminal windows and run:
     watch -n 5 free -m
     htop
 
+* How can I change router configuration?
+
+Answer: You can connect to router, and open a web browser. Type **http://tplinklogin.net**, credentials are:
+user **admin** and password **admin**.
+
+You can, for instance, change static IP address assigned to RPI2, ODROID or PC (*DHCP/Address Reservation*). As well as checking if all devices are properly connected (*DHCP/DHCP Client List*)
 
 
 

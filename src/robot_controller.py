@@ -28,7 +28,7 @@ from classes.PoseRobot import *
 from suricate_robot.cfg import controllerConfig
 
 from sensor_msgs.msg import Imu
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Wrench
 from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
@@ -40,6 +40,7 @@ class RobotControllerNode:
     def __init__(self):
         # publish to cmd_vel
         self.pub_vel = rospy.Publisher('/robot/cmd_vel_real', Twist, queue_size=1)
+        self.pub_wrench = rospy.Publisher('/robot/cmd_wrench', Wrench, queue_size=1)
 
         # Reset output
         self.twist = Twist()
@@ -50,6 +51,10 @@ class RobotControllerNode:
         self.twist.angular.y = 0
         self.twist.angular.z = 0
         self.pub_vel.publish(self.twist)
+
+        # Reset output wrench
+        self.wrench_cmd = Wrench()
+        self.pub_wrench.publish(self.wrench_cmd)
 
         """ Init a new robot controller """
         self.roll = 0.0
@@ -278,6 +283,15 @@ class RobotControllerNode:
 
         self.pub_vel.publish(self.twist)
 
+        # Publish new wrench value
+        self.wrench_cmd.force.x = self.output
+        self.wrench_cmd.force.y = 0
+        self.wrench_cmd.force.z = 0
+        self.wrench_cmd.torque.x = 0
+        self.wrench_cmd.torque.y = 0
+        self.wrench_cmd.torque.z = self.desired_z * self.scaling_joy * 0.35
+        self.pub_wrench.publish(self.wrench_cmd)
+
     def disable_controller(self):
         self.enable_controller = False
 
@@ -286,14 +300,23 @@ class RobotControllerNode:
 
     def send_reset_command(self):
         # create a twist message, fill in the details
-        self.twist.linear.x = self.output
+        self.twist.linear.x = 0
         self.twist.linear.y = 0
         self.twist.linear.z = 0
         self.twist.angular.x = 0
         self.twist.angular.y = 0
-        self.twist.angular.z = self.desired_z * self.scaling_joy
+        self.twist.angular.z = 0
 
         self.pub_vel.publish(self.twist)
+
+        # Publish new wrench value
+        self.wrench_cmd.force.x = 0
+        self.wrench_cmd.force.y = 0
+        self.wrench_cmd.force.z = 0
+        self.wrench_cmd.torque.x = 0
+        self.wrench_cmd.torque.y = 0
+        self.wrench_cmd.torque.z = 0
+        self.pub_wrench.publish(self.wrench_cmd)
 
     def shutdown_node(self):
         rospy.loginfo("Turning off node: robot_controller")

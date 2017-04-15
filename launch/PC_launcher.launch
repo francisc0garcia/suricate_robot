@@ -4,17 +4,6 @@
     <node name="custom_rqt_perspective" pkg="rqt_gui" type="rqt_gui"
           args="--perspective-file  $(find suricate_robot)/simulation/robot_micro.perspective" required="false" />
 
-    <!--
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_micro)/simulation/rviz_config.rviz" required="false" />
-    -->
-
-    <!--
-    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" >
-        <arg name="port" value="9090"/>
-    </include>
-    -->
-
-    <!--
-    <node pkg="suricate_robot" type="visual_odometry" name="visual_odometry"/>
-    -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find suricate_robot)/simulation/rviz_robot_test.rviz"
+          required="false" />
 </launch>

@@ -1,0 +1,16 @@
+<launch>
+    <node pkg="suricate_robot" type="robot_controller.py" name="robot_controller" required="true" >
+        <param name="S_kp" type="double" value="0.1" />
+        <param name="S_kd" type="double" value="0.02" />
+        <param name="S_ki" type="double" value="0.04" />
+        <param name="S_windup" type="double" value="0.8" />
+
+        <param name="P_kp" type="double" value="0.1" />
+        <param name="P_kd" type="double" value="0" />
+        <param name="P_ki" type="double" value="0.02" />
+        <param name="P_windup" type="double" value="0.2" />
+
+        <param name="scaling_joy" type="double" value="3.0" />
+    </node>
+</launch>
+
