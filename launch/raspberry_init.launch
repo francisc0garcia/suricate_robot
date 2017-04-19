@@ -13,6 +13,13 @@
         <param name="rate" type="int" value="130" />
     </node>
 
+    <!-- convert IMU to angles for visualization -->
+    <node pkg="suricate_robot" type="imu_to_angles.py" name="imu_to_angles_robot_imu" required="false" >
+        <param name="rate" type="int" value="100" />
+        <param name="imu_name" type="string" value="robot_imu" />
+        <param name="topic_name" type="string" value="/robot/imu" />
+    </node>
+
     <node pkg="suricate_robot" type="robot_odometry.py" name="robot_odometry" required="true" >
         <param name="rate" type="int" value="150" />
         <param name="ticks_meter" type="double" value="15000" />
