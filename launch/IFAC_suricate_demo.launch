@@ -1,0 +1,24 @@
+<launch>
+    <include file="$(find teleop_twist_joy)/launch/teleop.launch" />
+
+    <node name="custom_rqt_perspective" pkg="rqt_gui" type="rqt_gui"
+          args="--perspective-file  $(find suricate_robot)/simulation/robot_micro_IFAC.perspective"
+           required="false" />
+
+    <env name="GAZEBO_MODEL_PATH" value="$(find suricate_robot)/simulation/models"/>
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch" >
+        <arg name="world_name" value="$(find suricate_robot)/simulation/worlds/suricate_IFAC.world"/>
+        <arg name="paused" value="true"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="gui" value="true"/>
+        <arg name="headless" value="false"/>
+        <arg name="debug" value="false"/>
+    </include>
+
+    <node pkg="suricate_robot" type="robot_controller_LQR_V1.py" name="robot_controller" required="true" >
+        <param name="scaling_joy" type="double" value="2.1" />
+        <param name="rate" type="double" value="150" />
+        <param name="gain_LQR" type="double" value="0.05" />
+    </node>
+</launch>
